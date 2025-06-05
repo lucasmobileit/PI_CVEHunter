@@ -16,9 +16,6 @@ import json
 # --- Configuração da Console ---
 console = Console()
 
-
-# --- FUNÇÕES DE PARSEAMENTO DO RELATÓRIO (para JSON) ---
-# (extract_version e parse_banner_scan_report_content permanecem como antes)
 def extract_version(service_name, details_str):
     version = None
     if not details_str: return None
@@ -93,8 +90,6 @@ def parse_banner_scan_report_content(file_content):
     if current_host_info: parsed_data.append(current_host_info)
     return parsed_data
 
-
-# --- NOVA FUNÇÃO PARA PARSEAR SAÍDA XML DO NMAP -sV ---
 def parse_nmap_sv_xml_details(xml_output_sv):
     """
     Parseia a saída XML de um scan Nmap -sV para um ÚNICO host/porta
@@ -132,8 +127,6 @@ def parse_nmap_sv_xml_details(xml_output_sv):
         service_details["error"] = f"XML Parse Error: {e}"
     return service_details
 
-
-# --- NOVA FUNÇÃO PARA ORQUESTRAR SCANS -sV ---
 def run_enhanced_version_detection(structured_initial_data, main_output_file):
     """
     Itera sobre os dados parseados, executa Nmap -sV direcionado para serviços específicos
@@ -252,16 +245,6 @@ def run_enhanced_version_detection(structured_initial_data, main_output_file):
 
 
 # --- Funções de Banner Grabbing, Handlers, Validação, etc. ---
-# (Coloque aqui TODO o seu código de _grab_banner_X, TCP_BANNER_HANDLERS, UDP_BANNER_HANDLERS,
-#  validate_input, check_nmap_installed, grab_banner_tcp, grab_banner_udp,
-#  parse_nmap_xml_output, e a função discover_hosts modificada na mensagem anterior)
-# ... (COPIE E COLE SEU CÓDIGO COMPLETO EXISTENTE AQUI, COM AS ÚLTIMAS ALTERAÇÕES FEITAS EM discover_hosts)...
-# ... As funções de banner grabber e discover_hosts da sua última interação devem ser coladas aqui ...
-# ... Certifique-se que a função discover_hosts é a versão que já inclui as mensagens customizadas para Telnet, SMB, SMTP ...
-
-# --- Colando as funções que faltavam (EXEMPLO - SUBSTITUA PELO SEU CÓDIGO COMPLETO E CORRETO) ---
-# (Funções _grab_X_banner TCP e UDP - com pequenas modificações para consistência de prefixo)
-
 def _grab_banner_generic_tcp(sock, host, port):
     sock.settimeout(2)
     banner = sock.recv(1024).decode('utf-8', errors='ignore').strip()
@@ -269,11 +252,9 @@ def _grab_banner_generic_tcp(sock, host, port):
         return f"Generic TCP: {banner[:60]}"
     return "Generic TCP: No immediate banner"
 
-
 def _grab_ftp_banner(sock, host, port):
     banner = sock.recv(1024).decode('utf-8', errors='ignore').strip()
     return f"FTP: {banner[:60]}" if banner else "FTP: No banner"
-
 
 def _grab_ssh_banner(sock, host, port):
     banner = sock.recv(1024).decode('utf-8', errors='ignore').strip()
@@ -287,7 +268,6 @@ def _grab_telnet_banner(sock, host, port):  # TCP
     elif not banner:
         return "Telnet: No banner"
     return banner[:70]
-
 
 def _grab_smtp_banner(sock, host, port):  # TCP
     try:
@@ -318,7 +298,6 @@ def _grab_smtp_banner(sock, host, port):  # TCP
     except Exception as e:
         return f"SMTP: Error ({str(e)[:45]})"
 
-
 def _grab_http_banner_logic(sock, host, port_num, service_name="HTTP"):
     request = f"GET / HTTP/1.1\r\nHost: {host}\r\nUser-Agent: IT-Scanner\r\nConnection: close\r\n\r\n"
     sock.send(request.encode('utf-8'))
@@ -328,12 +307,10 @@ def _grab_http_banner_logic(sock, host, port_num, service_name="HTTP"):
             return f"{service_name}: {line.split(':', 1)[1].strip()[:60]}"
     return f"{service_name}: No server banner"
 
-
 def _grab_http_banner(sock, host, port): return _grab_http_banner_logic(sock, host, port, "HTTP")
 
 
 def _grab_http_alt_banner(sock, host, port): return _grab_http_banner_logic(sock, host, port, "HTTP (Alt)")
-
 
 def _grab_pop3_banner(sock, host, port):
     banner = sock.recv(1024).decode('utf-8', errors='ignore').strip()
@@ -341,16 +318,13 @@ def _grab_pop3_banner(sock, host, port):
         return f"POP3: {banner[:60]}" if banner else "POP3: No banner"
     return banner[:70]
 
-
 def _grab_rpc_banner(sock, host, port): return "RPC: Service detected"
-
 
 def _grab_imap_banner(sock, host, port):
     banner = sock.recv(1024).decode('utf-8', errors='ignore').strip()
     if not banner.upper().startswith("IMAP:"):
         return f"IMAP: {banner[:60]}" if banner else "IMAP: No banner"
     return banner[:70]
-
 
 def _grab_https_banner(sock, host, port):
     try:
@@ -371,7 +345,6 @@ def _grab_https_banner(sock, host, port):
     except Exception as e:
         return f"HTTPS: Connection or Handshake Error ({str(e)[:40]})"
 
-
 def _grab_smb_banner(sock, host, port):
     smb_packet = bytes.fromhex("0000002fff534d42720000000000000000000000000000000000000000000000")
     try:
@@ -381,11 +354,9 @@ def _grab_smb_banner(sock, host, port):
     except Exception as e:
         return f"SMB: Error ({str(e)[:45]})"
 
-
 def _grab_mssql_banner(sock, host, port):
     banner = sock.recv(1024).hex()
     return f"MSSQL: Detected (hex: {banner[:55]})" if banner else "MSSQL: No response"
-
 
 def _grab_mysql_banner(sock, host, port):
     banner_content = sock.recv(1024)
@@ -401,7 +372,6 @@ def _grab_mysql_banner(sock, host, port):
 
 
 def _grab_rdp_banner(sock, host, port): return "RDP: Service detected"
-
 
 def _grab_postgresql_banner(sock, host, port):
     try:
@@ -466,9 +436,7 @@ def _grab_dns_banner_udp(sock, host, port):
 
 def _grab_dhcp_server_banner_udp(sock, host, port): return "DHCP Server: Detected (standard port)"
 
-
 def _grab_dhcp_client_banner_udp(sock, host, port): return "DHCP Client: Detected (standard port)"
-
 
 def _grab_tftp_banner_udp(sock, host, port):
     tftp_packet = b"\x00\x01" + b"testfile" + b"\x00" + b"octet" + b"\x00"
@@ -479,7 +447,6 @@ def _grab_tftp_banner_udp(sock, host, port):
         return f"TFTP: Error packet (code {error_code}) (hex: {banner.hex()[:45]})"
     return f"TFTP: Response (hex: {banner.hex()[:50]})" if banner else "TFTP: No response"
 
-
 def _grab_ntp_banner_udp(sock, host, port):
     ntp_packet = bytearray(48);
     ntp_packet[0] = 0b00100011
@@ -488,7 +455,6 @@ def _grab_ntp_banner_udp(sock, host, port):
     if banner and len(banner) == 48: return f"NTP: Valid response (hex: {banner.hex()[:50]})"
     return f"NTP: Response (hex: {banner.hex()[:50]})" if banner else "NTP: No response"
 
-
 def _grab_netbios_ns_banner_udp(sock, host, port):
     nbns_query = bytes.fromhex(
         "00000010000100000000000020434b4141414141414141414141414141414141414141414141414141414141410000210001")
@@ -496,9 +462,7 @@ def _grab_netbios_ns_banner_udp(sock, host, port):
     banner, _ = sock.recvfrom(1024)
     return f"NetBIOS Name: Response (hex: {banner.hex()[:45]})" if banner else "NetBIOS Name: No response"
 
-
 def _grab_netbios_dgm_banner_udp(sock, host, port): return "NetBIOS Datagram: Detected (standard port)"
-
 
 def _grab_snmp_banner_udp(sock, host, port):
     snmp_packet = bytes.fromhex("302602010104067075626c6963a019020400000000020100020100300b300906052b0601020101010500")
@@ -511,9 +475,7 @@ def _grab_snmp_banner_udp(sock, host, port):
     except Exception:
         return f"SNMP: Response (hex: {banner.hex()[:50]})" if banner else "SNMP: No response"
 
-
 def _grab_snmp_trap_banner_udp(sock, host, port): return "SNMP Trap: Detected (standard port)"
-
 
 def _grab_isakmp_banner_udp(sock, host, port):
     ike_packet = os.urandom(8) + b"\x00\x00\x00\x00\x00\x00\x00\x00\x01\x10\x02\x00\x00\x00\x00\x00\x00\x00\x00\x2c" + \
@@ -522,9 +484,7 @@ def _grab_isakmp_banner_udp(sock, host, port):
     banner, _ = sock.recvfrom(1024)
     return f"ISAKMP/IKE: Response (hex: {banner.hex()[:50]})" if banner else "ISAKMP/IKE: No response"
 
-
 def _grab_syslog_banner_udp(sock, host, port): return "Syslog: Detected (standard port, typically no banner)"
-
 
 def _grab_ipsec_natt_banner_udp(sock, host, port):
     natt_keepalive = b"\x00\x00\x00\x00\xff"
@@ -534,7 +494,6 @@ def _grab_ipsec_natt_banner_udp(sock, host, port):
         return f"IPSec NAT-T: Response (hex: {banner.hex()[:45]})" if banner else "IPSec NAT-T: No direct response"
     except socket.timeout:
         return "IPSec NAT-T: Detected (no response to keepalive)"
-
 
 UDP_BANNER_HANDLERS = {
     53: _grab_dns_banner_udp, 67: _grab_dhcp_server_banner_udp, 68: _grab_dhcp_client_banner_udp,
