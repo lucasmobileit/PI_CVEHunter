@@ -40,6 +40,7 @@ network-scanner -t 192.168.0.0/24 --enable-nse-fallback --nvd-api-key SEU_TOKEN
 
 
 ## Estrutura modular:
+```text
 network_scanner/
 ├── scanner/
 │   ├── cli.py
@@ -56,7 +57,7 @@ network_scanner/
 │   ├── test_parser.py
 │   ├── test_utils.py
 │   └── test_vulnerabilities.py
-
+```
 
 ## 🔐 Requisitos:
 - Python 3.7+
