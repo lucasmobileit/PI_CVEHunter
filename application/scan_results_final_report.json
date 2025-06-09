@@ -1,0 +1,148 @@
+[
+  {
+    "host": "45.33.32.156",
+    "services": [
+      {
+        "port": "22",
+        "protocol": "tcp",
+        "service_name": "SSH",
+        "details": "SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13",
+        "version": "6.6.1p1",
+        "vulnerabilities": [],
+        "vulnerability_query_status": "Nenhuma vulnerabilidade encontrada por NVD para SSH 6.6.1p1",
+        "nse_fallback_info": {
+          "script_outputs": {
+            "ssh2-enum-algos": {
+              "kex": [
+                "curve25519-sha256@libssh.org",
+                "ecdh-sha2-nistp256",
+                "ecdh-sha2-nistp384",
+                "ecdh-sha2-nistp521",
+                "diffie-hellman-group-exchange-sha256",
+                "diffie-hellman-group-exchange-sha1",
+                "diffie-hellman-group14-sha1",
+                "diffie-hellman-group1-sha1"
+              ],
+              "host_key": [
+                "ssh-rsa",
+                "ssh-dss",
+                "ecdsa-sha2-nistp256",
+                "ssh-ed25519"
+              ],
+              "encryption": [
+                "aes128-ctr",
+                "aes192-ctr",
+                "aes256-ctr",
+                "arcfour256",
+                "arcfour128",
+                "aes128-gcm@openssh.com",
+                "aes256-gcm@openssh.com",
+                "chacha20-poly1305@openssh.com",
+                "aes128-cbc",
+                "3des-cbc",
+                "blowfish-cbc",
+                "cast128-cbc",
+                "aes192-cbc",
+                "aes256-cbc",
+                "arcfour",
+                "rijndael-cbc@lysator.liu.se"
+              ],
+              "mac": [
+                "hmac-md5-etm@openssh.com",
+                "hmac-sha1-etm@openssh.com",
+                "umac-64-etm@openssh.com",
+                "umac-128-etm@openssh.com",
+                "hmac-sha2-256-etm@openssh.com",
+                "hmac-sha2-512-etm@openssh.com",
+                "hmac-ripemd160-etm@openssh.com",
+                "hmac-sha1-96-etm@openssh.com",
+                "hmac-md5-96-etm@openssh.com",
+                "hmac-md5",
+                "hmac-sha1",
+                "umac-64@openssh.com",
+                "umac-128@openssh.com",
+                "hmac-sha2-256",
+                "hmac-sha2-512",
+                "hmac-ripemd160",
+                "hmac-ripemd160@openssh.com",
+                "hmac-sha1-96",
+                "hmac-md5-96"
+              ],
+              "compression": [
+                "none",
+                "zlib@openssh.com"
+              ]
+            },
+            "ssh-hostkey": "1024 ac:00:a0:1a:82:ff:cc:55:99:dc:67:2b:34:97:6b:75 (DSA)\n  2048 20:3d:2d:44:62:2a:b0:5a:9d:b5:b3:05:14:c2:a6:b2 (RSA)\n  256 96:02:bb:5e:57:54:1c:4e:45:2f:56:4c:4a:24:b2:57 (ECDSA)\n  256 33:fa:91:0f:e0:e1:7b:1f:6d:05:a2:b0:f1:54:41:56 (ED25519)",
+            "ssh-auth-methods": {
+              "supported_methods": [
+                "publickey",
+                "password"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "port": "80",
+        "protocol": "tcp",
+        "service_name": "HTTP",
+        "details": "Apache/2.4.7 (Ubuntu)",
+        "version": "2.4.7",
+        "vulnerabilities": [
+          {
+            "cve_id": "CVE-2013-4522",
+            "description": "lib/filelib.php in Moodle through 2.2.11, 2.3.x before 2.3.10, 2.4.x before 2.4.7, and 2.5.x before 2.5.3 does not send \"Cache-Control: private\" HTTP headers, which allows remote attackers to obtain sensitive information by requesting a file that had been previously retrieved by a caching proxy server.",
+            "cvss_v3_score": null,
+            "severity": null,
+            "cvss_v3_vector": null,
+            "published_date": "2013-11-26T05:25:38.570",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2013-4522",
+            "source": "NVD"
+          },
+          {
+            "cve_id": "CVE-2018-14369",
+            "description": "In Wireshark 2.6.0 to 2.6.1, 2.4.0 to 2.4.7, and 2.2.0 to 2.2.15, the HTTP2 dissector could crash. This was addressed in epan/dissectors/packet-http2.c by verifying that header data was found before proceeding to header decompression.",
+            "cvss_v3_score": 7.5,
+            "severity": null,
+            "cvss_v3_vector": "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+            "published_date": "2018-07-19T02:29:00.687",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2018-14369",
+            "source": "NVD"
+          },
+          {
+            "cve_id": "CVE-2019-16254",
+            "description": "Ruby through 2.4.7, 2.5.x through 2.5.6, and 2.6.x through 2.6.4 allows HTTP Response Splitting. If a program using WEBrick inserts untrusted input into the response header, an attacker can exploit it to insert a newline character to split a header, and inject malicious content to deceive clients. NOTE: this issue exists because of an incomplete fix for CVE-2017-17742, which addressed the CRLF vector, but did not address an isolated CR or an isolated LF.",
+            "cvss_v3_score": 5.3,
+            "severity": null,
+            "cvss_v3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
+            "published_date": "2019-11-26T18:15:15.210",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2019-16254",
+            "source": "NVD"
+          },
+          {
+            "cve_id": "CVE-2021-31407",
+            "description": "Vulnerability in OSGi integration in com.vaadin:flow-server versions 1.2.0 through 2.4.7 (Vaadin 12.0.0 through 14.4.9), and 6.0.0 through 6.0.1 (Vaadin 19.0.0) allows attacker to access application classes and resources on the server via crafted HTTP request.",
+            "cvss_v3_score": 8.6,
+            "severity": null,
+            "cvss_v3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:N",
+            "published_date": "2021-04-23T16:15:08.767",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2021-31407",
+            "source": "NVD"
+          },
+          {
+            "cve_id": "CVE-2021-44224",
+            "description": "A crafted URI sent to httpd configured as a forward proxy (ProxyRequests on) can cause a crash (NULL pointer dereference) or, for configurations mixing forward and reverse proxy declarations, can allow for requests to be directed to a declared Unix Domain Socket endpoint (Server Side Request Forgery). This issue affects Apache HTTP Server 2.4.7 up to 2.4.51 (included).",
+            "cvss_v3_score": 8.2,
+            "severity": null,
+            "cvss_v3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:H",
+            "published_date": "2021-12-20T12:15:07.393",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2021-44224",
+            "source": "NVD"
+          }
+        ]
+      }
+    ],
+    "scan_date": "2025-06-09T16:58:32.457339"
+  }
+]

@@ -1,0 +1,5 @@
+# Varredura de Rede Detalhada para: scanme.nmap.org em Mon Jun  9 16:58:16 2025
+
+Host: 45.33.32.156
+  - 22/tcp: SSH: SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13
+  - 80/tcp: HTTP: Apache/2.4.7 (Ubuntu)

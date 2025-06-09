@@ -13,6 +13,8 @@ import re
 import xml.etree.ElementTree as ET
 import json
 import requests
+from datetime import datetime
+
 
 # --- Configuração da Console ---
 console = Console()
@@ -1008,6 +1010,11 @@ def main():
                     run_fallback_nse_scans(structured_data)
 
                 json_file_name = args.json_output if args.json_output else f"{os.path.splitext(args.output_text)[0]}_final_report.json"
+                
+                scan_date = datetime.now().isoformat()
+                for entry in structured_data:
+                    entry["scan_date"] = scan_date
+
                 with open(json_file_name, "w", encoding="utf-8") as json_f:
                     json.dump(structured_data, json_f, indent=2, ensure_ascii=False)
                 console.print(
