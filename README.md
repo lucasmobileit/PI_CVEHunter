@@ -37,3 +37,27 @@ network-scanner -t 192.168.0.0/24 --enable-nse-fallback --nvd-api-key SEU_TOKEN
 | `--nvd-api-key`         | Token da NVD para evitar rate-limit         |
 | `--enable-nse-fallback` | Executa scripts NSE em serviços relevantes  |
 | `--no-root-check`       | Permite execução sem root (usa -sT)         |
+
+
+## Estrutura modular:
+network_scanner/
+├── scanner/
+│   ├── cli.py
+│   ├── main.py
+│   ├── discovery.py
+│   ├── parser.py
+│   ├── enrichment.py
+│   ├── vulnerabilities.py
+│   ├── utils.py
+│   └── banner_handlers/
+│       ├── tcp.py
+│       └── udp.py
+├── tests/
+│   ├── test_parser.py
+│   ├── test_utils.py
+│   └── test_vulnerabilities.py
+
+
+## 🔐 Requisitos:
+- Python 3.7+
+- Permissões de root (para -sS, -sU e NSE completo)
