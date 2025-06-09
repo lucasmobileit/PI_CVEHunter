@@ -12,16 +12,6 @@ Scanner de rede avançado com:
 
 ---
 
-## 🚀 Instalação
-
-```bash
-git clone https://github.com/lucasmobileit/network-scanner.git [!]
-cd network-scanner
-pip install -r requirements.txt
-pip install -e .
-```
----
-
 ## Uso da CLI
 
 ```python
@@ -43,22 +33,16 @@ network-scanner -t 192.168.0.0/24 --enable-nse-fallback --nvd-api-key SEU_TOKEN
 ```text
 network_scanner/
 ├── scanner/
-│   ├── cli.py
 │   ├── main.py
-│   ├── discovery.py
-│   ├── parser.py
-│   ├── enrichment.py
-│   ├── vulnerabilities.py
+│   ├── nmap_scanning.py
+│   ├── banner_grabbing.py
+│   ├── parsing.py
+│   ├── nvd_queries.py
 │   ├── utils.py
-│   └── banner_handlers/
-│       ├── tcp.py
-│       └── udp.py
-├── tests/
-│   ├── test_parser.py
-│   ├── test_utils.py
-│   └── test_vulnerabilities.py
 ```
 
 ## 🔐 Requisitos:
-- Python 3.7+
-- Permissões de root (para -sS, -sU e NSE completo)
+- Python 3.6+
+- Bibliotecas: `pip install rich requests`
+- Nmap: `sudo apt install nmap`
+- Opcional: chave de API NVD (https://nvd.nist.gov/developers/request-an-api-key)
