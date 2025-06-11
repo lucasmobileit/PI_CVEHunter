@@ -1,156 +1,189 @@
 import requests
-import time
-import re
 from rich.console import Console
 from rich.progress import track
+import re
 
 console = Console()
-
 NVD_API_BASE_URL = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 NVD_REQUEST_DELAY_NO_KEY = 7
-NVD_REQUEST_DELAY_WITH_KEY = 1.2
+
+def get_severity_from_cvss_v2(score):
+    if not isinstance(score, (int, float)):
+        return "N/A"
+    score = float(score)
+    if score >= 7.0:
+        return "HIGH"
+    elif score >= 4.0:
+        return "MEDIUM"
+    else:
+        return "LOW"
+
+def normalize_version(version_str):
+    """Normaliza strings de versão, extraindo a última versão de intervalos."""
+    if not version_str:
+        return None
+    # Trata intervalos como '8.3.0 - 8.3.7'
+    version_match = re.search(r'(\d+\.\d+\.\d+)(?:\s*-\s*(\d+\.\d+\.\d+))?', version_str)
+    if version_match:
+        # Retorna a última versão do intervalo, ou a única versão encontrada
+        return version_match.group(2) if version_match.group(2) else version_match.group(1)
+    # Retorna a versão se for um formato válido (e.g., '8.3.7')
+    if re.match(r'^\d+\.\d+\.\d+(?:[a-zA-Z0-9\.\-]*)$', version_str):
+        return version_str
+    return None
 
 def generate_heuristic_cpe(product_name, version_str):
-    if not product_name or not version_str:
+    if not product_name:
         return None
-    product_lower = product_name.lower()
-    version_clean = re.split(r'[-_ ]', version_str)[0]
-    version_clean = re.sub(r'p\d+$', '', version_clean)
-
+    product_lower = product_name.lower().strip()
+    version_clean = normalize_version(version_str) if version_str else None
     cpe_map = {
-        "openssh": f"cpe:2.3:a:openbsd:openssh:{version_clean}:*:*:*:*:*:*:*",
-        "vsftpd": f"cpe:2.3:a:vsftpd_project:vsftpd:{version_clean}:*:*:*:*:*:*:*",
-        "apache http server": f"cpe:2.3:a:apache:http_server:{version_clean}:*:*:*:*:*:*:*",
-        "apache": f"cpe:2.3:a:apache:http_server:{version_clean}:*:*:*:*:*:*:*",
-        "httpd": f"cpe:2.3:a:apache:http_server:{version_clean}:*:*:*:*:*:*:*",
-        "mysql": f"cpe:2.3:a:mysql:mysql:{version_clean}:*:*:*:*:*:*:*",
-        "samba smbd": f"cpe:2.3:a:samba:samba:{version_clean}:*:*:*:*:*:*:*",
-        "samba": f"cpe:2.3:a:samba:samba:{version_clean}:*:*:*:*:*:*:*",
-        "postgresql db": f"cpe:2.3:a:postgresql:postgresql:{version_clean}:*:*:*:*:*:*:*",
-        "postgresql": f"cpe:2.3:a:postgresql:postgresql:{version_clean}:*:*:*:*:*:*:*",
+        "openssh": f"cpe:2.3:a:openbsd:openssh:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "ssh": f"cpe:2.3:a:openbsd:openssh:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "apache http server": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "apache": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "httpd": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "http": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "apache httpd": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "apache2": f"cpe:2.3:a:apache:http_server:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "vsftpd": f"cpe:2.3:a:vsftpd_project:vsftpd:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "mysql": f"cpe:2.3:a:mysql:mysql:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "samba smbd": f"cpe:2.3:a:samba:samba:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "samba": f"cpe:2.3:a:samba:samba:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "postgresql db": f"cpe:2.3:a:postgresql:postgresql:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
+        "postgresql": f"cpe:2.3:a:postgresql:postgresql:{version_clean or '*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}:{'*'}",
     }
     for key, cpe_format_string in cpe_map.items():
         if key in product_lower:
+            console.print(f"[debug] CPE gerado para {product_name} {version_str}: {cpe_format_string}")
             return cpe_format_string
+    console.print(f"[yellow]Nenhum CPE mapeado para {product_name}[/yellow]")
     return None
 
-def query_nvd_for_vulnerabilities(product_name, version_str, nvd_api_key=None):
-    vulnerabilities_found = []
-    if not product_name or not version_str:
-        return vulnerabilities_found
-
-    is_version_range = " - " in version_str or " to " in version_str.lower() or "through" in version_str.lower()
-    if is_version_range:
-        console.print(
-            f"    [yellow]NVD: Intervalo de versão '{version_str}' para '{product_name}'. Consulta automática pulada. Verifique manualmente.[/yellow]",
-            highlight=False)
-        return [{"info": f"Intervalo de versões detectado: '{version_str}'. Recomenda-se consulta manual de CVEs."}]
-
+def query_nvd_for_vulnerabilities(product_name, version_str, api_key=None):
+    vulnerabilities = []
+    product_lower = product_name.lower().strip()
     heuristic_cpe = generate_heuristic_cpe(product_name, version_str)
-
-    params = {}
-    search_type_log = ""
+    
+    # Busca por CPE
     if heuristic_cpe:
-        params = {"cpeName": heuristic_cpe, "resultsPerPage": 10}
-        search_type_log = f"CPE: {heuristic_cpe}"
-    else:
-        search_term = f"{product_name} {version_str}"
-        params = {"keywordSearch": search_term, "resultsPerPage": 5}
-        search_type_log = f"Keyword: {search_term}"
-
-    headers = {}
-    current_delay = NVD_REQUEST_DELAY_NO_KEY
-    if nvd_api_key:
-        headers['apiKey'] = nvd_api_key
-        current_delay = NVD_REQUEST_DELAY_WITH_KEY
-
-    console.print(f"    Consultando NVD ({search_type_log}) (delay: {current_delay}s)...", highlight=False)
-    try:
-        response = requests.get(NVD_API_BASE_URL, params=params, headers=headers, timeout=30)
-        time.sleep(current_delay)
-        response.raise_for_status()
-        data = response.json()
-        if data.get("vulnerabilities"):
-            for cve_item_wrapper in data["vulnerabilities"]:
-                cve_data = cve_item_wrapper.get("cve", {})
+        try:
+            params = {"cpeName": heuristic_cpe, "resultsPerPage": 10}
+            headers = {"apiKey": api_key} if api_key else {}
+            response = requests.get(NVD_API_BASE_URL, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            for vuln in data.get("vulnerabilities", []):
+                cve_data = vuln.get("cve", {})
                 cve_id = cve_data.get("id", "N/A")
-                description = "No English description available."
-                if cve_data.get("descriptions"):
-                    for desc_entry in cve_data["descriptions"]:
-                        if desc_entry.get("lang") == "en":
-                            description = desc_entry.get("value", description)
-                            break
-                cvss_v3_score, cvss_v3_vector, severity = None, None, None
+                description = cve_data.get("descriptions", [{}])[0].get("value", "N/A")
+                
+                # Extrair métricas
                 metrics = cve_data.get("metrics", {})
-                cvss_metrics_v31, cvss_metrics_v30 = metrics.get("cvssMetricV31"), metrics.get("cvssMetricV30")
-                if cvss_metrics_v31:
-                    cvss_data_details = cvss_metrics_v31[0].get("cvssData", {})
-                    cvss_v3_score, cvss_v3_vector, severity = cvss_data_details.get("baseScore"), cvss_data_details.get(
-                        "vectorString"), cvss_metrics_v31[0].get("baseSeverity")
-                elif cvss_metrics_v30:
-                    cvss_data_details = cvss_metrics_v30[0].get("cvssData", {})
-                    cvss_v3_score, cvss_v3_vector, severity = cvss_data_details.get("baseScore"), cvss_data_details.get(
-                        "vectorString"), cvss_metrics_v30[0].get("baseSeverity")
-                published_date = cve_data.get("published", "N/A")
-                vulnerabilities_found.append({
-                    "cve_id": cve_id, "description": description, "cvss_v3_score": cvss_v3_score,
-                    "severity": severity, "cvss_v3_vector": cvss_v3_vector, "published_date": published_date,
-                    "link": f"https://nvd.nist.gov/vuln/detail/{cve_id}" if cve_id != "N/A" else "N/A", "source": "NVD"
+                console.print(f"[debug] Métricas disponíveis para {cve_id}: {metrics.keys()}")
+                
+                # Inicializar valores padrão
+                cvss_score = None
+                severity = "N/A"
+                
+                # Tenta CVSS 3.1 ou 3.0
+                cvss_data = metrics.get("cvssMetricV31", [{}])[0].get("cvssData", {}) or \
+                           metrics.get("cvssMetricV30", [{}])[0].get("cvssData", {})
+                if cvss_data:
+                    cvss_score = cvss_data.get("baseScore", None)
+                    severity = cvss_data.get("baseSeverity", "N/A")
+                
+                # Fallback para CVSS 2.0
+                if severity == "N/A" and metrics.get("cvssMetricV20"):
+                    cvss_v2_data = metrics.get("cvssMetricV20", [{}])[0].get("cvssData", {})
+                    cvss_score = cvss_v2_data.get("baseScore", None)
+                    severity = get_severity_from_cvss_v2(cvss_score)
+                
+                # Logar se não houver métricas
+                if cvss_score is None:
+                    console.print(f"[yellow]Nenhuma métrica CVSS encontrada para {cve_id}[/yellow]")
+                
+                references = [ref.get("url") for ref in cve_data.get("references", [])]
+                vulnerabilities.append({
+                    "cve_id": cve_id,
+                    "description": description,
+                    "cvss_score": cvss_score,
+                    "severity": severity,
+                    "references": references,
+                    "link": f"https://nvd.nist.gov/vuln/detail/{cve_id}",
+                    "source": "NVD"
                 })
-            console.print(f"      [green]NVD: {len(vulnerabilities_found)} CVEs para '{search_type_log}'[/green]",
-                          highlight=False)
-        else:
-            console.print(
-                f"      [yellow]NVD: Nenhuma CVE para '{search_type_log}' (totalResults: {data.get('totalResults', 0)})[/yellow]",
-                highlight=False)
-    except requests.exceptions.HTTPError as http_err:
-        status_code = http_err.response.status_code if http_err.response else 'N/A'
-        if status_code == 404:
-            console.print(
-                f"  [yellow]NVD API Erro 404 (Not Found) para '{search_type_log}'. Termo/CPE pode não existir ou não ter CVEs.[/yellow]",
-                highlight=False)
-        elif status_code == 403:
-            console.print(
-                f"  [red]NVD API Erro 403 (Forbidden) para '{search_type_log}'. Rate limit? Verifique chave/delay.[/red]",
-                highlight=False)
-        else:
-            console.print(
-                f"  [red]NVD API HTTP error para '{search_type_log}': {http_err} (Status: {status_code})[/red]",
-                highlight=False)
-    except requests.exceptions.RequestException as req_err:
-        console.print(f"  [red]NVD API request error para '{search_type_log}': {req_err}[/red]", highlight=False)
-    except Exception as e:
-        console.print(f"  [red]Erro processando NVD para '{search_type_log}': {e}[/red]", highlight=False)
-    return vulnerabilities_found
+            console.print(f"[green]NVD: {len(vulnerabilities)} CVEs encontrados para '{heuristic_cpe}'[/green]")
+        except requests.exceptions.HTTPError as e:
+            console.print(f"[red]Erro na API NVD com CPE {heuristic_cpe}: {e}[/red]")
+    
+    # Fallback: Busca por palavras-chave
+    if not vulnerabilities and product_name:
+        try:
+            version_clean = normalize_version(version_str) if version_str else '*'
+            keyword = f"{product_name} {version_clean}" if version_clean != '*' else product_name
+            params = {"keywordSearch": keyword, "resultsPerPage": 10}
+            headers = {"apiKey": api_key} if api_key else {}
+            response = requests.get(NVD_API_BASE_URL, params=params, headers=headers, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            for vuln in data.get("vulnerabilities", []):
+                cve_data = vuln.get("cve", {})
+                cve_id = cve_data.get("id", "N/A")
+                description = cve_data.get("descriptions", [{}])[0].get("value", "N/A")
+                
+                # Extrair métricas
+                metrics = cve_data.get("metrics", {})
+                console.print(f"[debug] Métricas disponíveis para {cve_id}: {metrics.keys()}")
+                
+                # Inicializar valores padrão
+                cvss_score = None
+                severity = "N/A"
+                
+                # Tenta CVSS 3.1 ou 3.0
+                cvss_data = metrics.get("cvssMetricV31", [{}])[0].get("cvssData", {}) or \
+                           metrics.get("cvssMetricV30", [{}])[0].get("cvssData", {})
+                if cvss_data:
+                    cvss_score = cvss_data.get("baseScore", None)
+                    severity = cvss_data.get("baseSeverity", "N/A")
+                
+                # Fallback para CVSS 2.0
+                if severity == "N/A" and metrics.get("cvssMetricV20"):
+                    cvss_v2_data = metrics.get("cvssMetricV20", [{}])[0].get("cvssData", {})
+                    cvss_score = cvss_v2_data.get("baseScore", None)
+                    severity = get_severity_from_cvss_v2(cvss_score)
+                
+                # Logar se não houver métricas
+                if cvss_score is None:
+                    console.print(f"[yellow]Nenhuma métrica CVSS encontrada para {cve_id}[/yellow]")
+                
+                references = [ref.get("url") for ref in cve_data.get("references", [])]
+                vulnerabilities.append({
+                    "cve_id": cve_id,
+                    "description": description,
+                    "cvss_score": cvss_score,
+                    "severity": severity,
+                    "references": references,
+                    "link": f"https://nvd.nist.gov/vuln/detail/{cve_id}",
+                    "source": "NVD (Keyword)"
+                })
+            console.print(f"[green]NVD: {len(vulnerabilities)} CVEs encontrados com keyword '{keyword}'[/green]")
+        except requests.exceptions.HTTPError as e:
+            console.print(f"[red]Erro na API NVD com keyword {keyword}: {e}[/red]")
+    
+    return vulnerabilities
 
 def add_nvd_vulnerability_info(structured_data, nvd_api_key=None):
-    console.print("\n[cyan][*] Consultando NVD para vulnerabilidades conhecidas...[/cyan]")
-    if not isinstance(structured_data, list):
-        console.print("[yellow][!] Nenhum dado estruturado para consultar NVD.[/yellow]")
-        return
-    for host_info in track(structured_data, description="Consultando NVD..."):
+    console.print("\n[cyan][*] Consultando NVD para vulnerabilidades...[/cyan]")
+    for host_info in track(structured_data, description="Consultando APIs..."):
         if not isinstance(host_info.get("services"), list):
             continue
         for service in host_info["services"]:
             version = service.get("version")
-            product_name_from_sv = service.get("nmap_sv_info", {}).get("product")
-            service_name_initial = service.get("service_name")
-            product_to_query = product_name_from_sv if product_name_from_sv else service_name_initial
-
+            product_name = service.get("nmap_sv_info", {}).get("product") or service.get("service_name")
             service["vulnerabilities"] = []
-            if product_to_query and version:
-                nvd_vulns = query_nvd_for_vulnerabilities(product_to_query, version, nvd_api_key)
-                if nvd_vulns:
-                    service["vulnerabilities"].extend(nvd_vulns)
-                if not service["vulnerabilities"] and not any(
-                        "Intervalo de versões detectado" in v.get("info", "") for v in nvd_vulns if
-                        isinstance(v, dict)):
-                    service[
-                        "vulnerability_query_status"] = f"Nenhuma vulnerabilidade encontrada por NVD para {product_to_query} {version}"
-            elif product_to_query:
-                service["security_notes"] = ["Versão específica não identificada.",
-                                             "Recomenda-se investigação manual e verificação de patches."]
-            else:
-                service["security_notes"] = ["Serviço não claramente identificado.",
-                                             "Recomenda-se investigação manual."]
-    console.print("[green][+] Consultas ao NVD concluídas.[/green]")
+            if product_name:
+                service["vulnerabilities"] = query_nvd_for_vulnerabilities(product_name, version, nvd_api_key)
+                if not service["vulnerabilities"]:
+                    service["vulnerability_query_status"] = f"Nenhuma vulnerabilidade encontrada para {product_name} {version or '*'}"
+    console.print("[green][+] Consultas à API NVD concluídas.[/green]")
