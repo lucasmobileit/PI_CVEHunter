@@ -10,7 +10,6 @@ def extract_version(service_name, details_str):
     version = None
     if not details_str:
         return None
-
     markers_to_cut = [
         "ALERTA DE SEGURANÇA:", "INFO SEGURANÇA:",
         "INFO NMAP -SV:", "INFO NVD:", "INFO NSE FALLBACK:", "INFO NSE:"
@@ -20,13 +19,15 @@ def extract_version(service_name, details_str):
         idx = details_str.upper().find(marker)
         if idx != -1:
             end_of_original_details = min(end_of_original_details, idx)
-
     original_details = details_str[:end_of_original_details].strip()
     service_name_upper = service_name.upper()
     if not original_details:
         return None
-
-    if "FTP" in service_name_upper:
+    if "POSTGRESQL" in service_name_upper:
+        m = re.search(r'(\d+\.\d+\.\d+)(?:\s*-\s*(\d+\.\d+\.\d+))?', original_details)
+        if m:
+            version = m.group(2) if m.group(2) else m.group(1)
+    elif "FTP" in service_name_upper:
         m = re.search(r"vsFTPd\s+([\w\d\.\-]+)", original_details, re.IGNORECASE)
         if m:
             version = m.group(1)
