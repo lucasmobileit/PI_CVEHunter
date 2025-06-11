@@ -36,6 +36,7 @@ network_scanner/
 │   ├── main.py
 │   ├── nmap_scanning.py
 │   ├── banner_grabbing.py
+│   ├── save_to_mongodb.py
 │   ├── parsing.py
 │   ├── nvd_queries.py
 │   ├── utils.py
@@ -43,6 +44,6 @@ network_scanner/
 
 ## 🔐 Requisitos:
 - Python 3.6+
-- Bibliotecas: `pip install rich requests`
+- Bibliotecas: `pip install rich requests pymongo nvdlib`
 - Nmap: `sudo apt install nmap`
 - Opcional: chave de API NVD (https://nvd.nist.gov/developers/request-an-api-key)
