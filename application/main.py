@@ -80,7 +80,6 @@ def main():
                 console.print(f"\n[cyan][*] Salvando dados no MongoDB...[/cyan]")
                 SaveMongo()
 
-
         except FileNotFoundError:
             console.print(f"[red][!] Relatório '{args.output_text}' não encontrado para processamento.[/red]")
         except Exception as e:
