@@ -7,8 +7,8 @@ from parsing import parse_banner_scan_report_content
 from nmap_scanning import run_enhanced_version_detection, run_fallback_nse_scans
 from nvd_queries import add_nvd_vulnerability_info
 from utils import validate_input
-import json
 from save_to_mongodb import SaveMongo
+import json
 
 console = Console()
 
