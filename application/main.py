@@ -8,6 +8,7 @@ from nmap_scanning import run_enhanced_version_detection, run_fallback_nse_scans
 from nvd_queries import add_nvd_vulnerability_info
 from utils import validate_input
 import json
+from save_to_mongodb import SaveMongo
 
 console = Console()
 
@@ -74,6 +75,11 @@ def main():
                     json.dump(structured_data, json_f, indent=2, ensure_ascii=False)
                 console.print(
                     f"\n[bold green][+] Relatório final JSON (com Nmap -sV, NVD e NSE fallback) salvo em: '{json_file_name}'[/bold green]")
+
+                # Save the JSON data to MongoDB
+                console.print(f"\n[cyan][*] Salvando dados no MongoDB...[/cyan]")
+                SaveMongo()
+
 
         except FileNotFoundError:
             console.print(f"[red][!] Relatório '{args.output_text}' não encontrado para processamento.[/red]")
