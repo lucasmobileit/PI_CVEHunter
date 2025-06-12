@@ -1,12 +1,11 @@
-# Network Scanner
+# CVE Hunter (Projeto acadêmico)
 
 Scanner de rede avançado com:
-
 - Descoberta de hosts via Nmap
-- Coleta de banners (TCP/UDP)
+- Coleta de banners (TCP/UDP) 
 - Enriquecimento com Nmap -sV
-- Consulta de vulnerabilidades via API da NVD
-- Fallback NSE scripts (opcional)
+- Consulta de vulnerabilidades via API da NVD com métricas CvssMetric2.0 até 3.1.
+- Fallback NSE scripts (opcional pela opção via cli)
 - Exportação em `.txt` e `.json`
 - CLI interativa com Rich
 
@@ -40,10 +39,16 @@ network_scanner/
 │   ├── parsing.py
 │   ├── nvd_queries.py
 │   ├── utils.py
+│   ├── report.html
+
 ```
+
+## Análise dos dados coletados:
+- Utilizamos a conexão do Pymongo para o banco de dados, e esses dados coletados apresentamos no PowerBI em forma de relátorio.
+- Como fallback fazemos a conexão do json com um arquivo html para apresentação do relatório.
 
 ## 🔐 Requisitos:
 - Python 3.6+
-- Bibliotecas: `pip install rich requests pymongo nvdlib`
+- Bibliotecas: `pip install rich requests pymongo json`
 - Nmap: `sudo apt install nmap`
 - Opcional: chave de API NVD (https://nvd.nist.gov/developers/request-an-api-key)
